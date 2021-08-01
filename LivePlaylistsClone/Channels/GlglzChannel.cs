@@ -22,7 +22,7 @@ namespace LivePlaylistsClone.Channels
         public override void Execute()
         {
             SaveChunkToFile(".\\glglz\\sample.mp3");
-            var root = UploadFileToAPI(".\\glglz\\sample.mp3");
+            var root = UploadChunkToAPI(".\\glglz\\sample.mp3");
 
             if (root.result == null)
             {
@@ -30,6 +30,8 @@ namespace LivePlaylistsClone.Channels
                 // reason: traffic highlights, breaking news, or some talk show
                 return;
             }
+
+            SaveSongToPlaylist(root.result.artist, root.result.title, root.result.album);
 
             string rootContent = root.result.ToString();
 
