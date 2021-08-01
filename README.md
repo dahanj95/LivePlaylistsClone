@@ -12,3 +12,6 @@ Currently I implemented Galgalatz (גלגל"צ) only, but extending to more chan
 
 # Final words
 Remember, this is a clone... it might not work exactly as the original work by Yaniv, but it has potential to continue development into a real-world app used by others. You may fork and modify the source, develop on your own and do what ever you want.
+
+# Demo
+![Demo](https://github.com/dahanj95/LivePlaylistsClone/blob/main/LivePlaylistsClone/demo.png)
