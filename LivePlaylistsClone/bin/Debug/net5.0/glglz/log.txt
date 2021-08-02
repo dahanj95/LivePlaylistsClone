@@ -1,7 +1,7 @@
-Artist: Hazel O'Connor
-Title: Will You
-Album: 40 Pop Hits From The 80's
-Release Date: 2010-12-13
-Label: Vanilla OMP
-Timecode: 00:18
-Song Link: https://lis.tn/qmiJKG
+Artist: Alex Kapranos;Clara Luciani
+Title: Summer Wine
+Album: Summer Wine
+Release Date: 2020-07-29
+Label: Domino Recording Co
+Timecode: 03:47
+Song Link: https://lis.tn/SummerWine

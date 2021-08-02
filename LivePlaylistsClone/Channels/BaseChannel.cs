@@ -1,10 +1,12 @@
-﻿using FluentScheduler;
+﻿using System.Collections.Generic;
+using FluentScheduler;
 using LivePlaylistsClone.Models;
 using Newtonsoft.Json;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using SpotifyAPI.Web;
 
 namespace LivePlaylistsClone.Channels
@@ -14,19 +16,15 @@ namespace LivePlaylistsClone.Channels
         protected string StreamUrl;
 
         private const string auddio_token = "bb69028c3a890fb949361f676519cb02"; // get your own token at https://dashboard.audd.io/
-        private const string spotify_client_id = "d669b91046f44f16897972105ac88953"; // get your own tokens at https://developer.spotify.com/dashboard
-        private const string spotify_client_secret = "ab424e4c2d5e4f218ea67666f130b648";
+
+        private const string spotify_token =
+            "BQB3004GXatLUIC_00UIZSxgHEV7qe8wttJPCbptt9cafu7MhrdiKORPTy3EUGP7zRqm_ohssgsX95u80ns"; // https://github.com/JMPerez/spotify-web-api-token
 
         private readonly SpotifyClient _spotify;
 
         public BaseChannel()
         {
-            var config = SpotifyClientConfig.CreateDefault();
-
-            var request = new ClientCredentialsRequest(spotify_client_id, spotify_client_secret);
-            var response = new OAuthClient(config).RequestToken(request);
-
-            _spotify = new SpotifyClient(config.WithToken(response.Result.AccessToken));
+            _spotify = new SpotifyClient(spotify_token);
         }
 
         public abstract void Execute();
@@ -77,30 +75,26 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected async void SaveSongToPlaylist(string artist, string title, string album)
+        protected async void SaveSongToPlaylist(string song_link)
         {
-            SearchRequest searchRequest = new SearchRequest(SearchRequest.Types.Track, $"{artist} {title}");
-            var searchReuslt = await _spotify.Search.Item(searchRequest);
-
-            if (searchReuslt.Tracks.Total < 1)
+            using (WebClient webClient = new WebClient())
             {
-                return;
-            }
+                string content = webClient.DownloadString(song_link);
+                var match = Regex.Match(content, "data-uri=\"spotify://track/([0-9a-zA-Z]+)\"");
 
-            var track = searchReuslt.Tracks.Items[0].Id;
-            var playlists = await _spotify.Playlists.CurrentUsers();
-
-            foreach (SimplePlaylist playlist in playlists.Items)
-            {
-                if (playlist.Name.Equals("Galgalatz - 100 Last Songs"))
+                if (match.Success)
                 {
-                    string id = playlist.Id;
+                    string trackId = match.Groups[1].Value;
+
+                    RootUris uris = new RootUris();
+                    uris.AddUri($"spotify:track:{trackId}");
+
+                    string json = JsonConvert.SerializeObject(uris);
+
+                    var item = new PlaylistAddItemsRequest(new List<string> {json});
+                    await _spotify.Playlists.AddItems("5mLHWcR8C3ObKYdKxTyzyY", item);
                 }
             }
-
-            //PlaylistAddItemsRequest req = new PlaylistAddItemsRequest();
-
-            int i = 0;
         }
     }
 }
