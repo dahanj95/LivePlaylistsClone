@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using FluentScheduler;
+﻿using FluentScheduler;
 using LivePlaylistsClone.Models;
 using Newtonsoft.Json;
 using System.Collections.Specialized;
@@ -7,7 +6,6 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using SpotifyAPI.Web;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -66,7 +64,26 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected async void AddSongToPlaylist(string song_link)
+        protected void AddSongToPlaylistByTrackId(string trackId)
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+                webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+                webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+
+                NameValueCollection values = new NameValueCollection();
+                values.Add("uris", $"spotify:track:{trackId}");
+
+                webClient.QueryString = values;
+
+                string endpoint = "https://api.spotify.com/v1/playlists/5mLHWcR8C3ObKYdKxTyzyY/tracks";
+
+                string response = webClient.UploadString(endpoint, "");
+            }
+        }
+
+        protected Track ExtractTrack(string song_link)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -75,22 +92,28 @@ namespace LivePlaylistsClone.Channels
 
                 if (match.Success)
                 {
-                    string trackId = match.Groups[1].Value;
-
-                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
-                    webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
-
-                    NameValueCollection values = new NameValueCollection();
-                    values.Add("uris", $"spotify:track:{trackId}");
-
-                    webClient.QueryString = values;
-
-                    string endpoint = "https://api.spotify.com/v1/playlists/5mLHWcR8C3ObKYdKxTyzyY/tracks";
-
-                    string response = webClient.UploadString(endpoint, "");
+                    return new Track { Id = match.Groups[1].Value };
                 }
+
+                return new Track();
             }
+        }
+
+        protected Track ReadTrackFromDatabase(string channelName)
+        {
+            if (File.Exists($".\\{channelName}\\database.json"))
+            {
+                string raw = File.ReadAllText($".\\{channelName}\\database.json");
+                return JsonConvert.DeserializeObject<Track>(raw);
+            }
+
+            return null;
+        }
+
+        protected void SaveTrackToDatabase(Track track, string channelName)
+        {
+            string raw = JsonConvert.SerializeObject(track);
+            File.WriteAllText($".\\{channelName}\\database.json", raw);
         }
     }
 }

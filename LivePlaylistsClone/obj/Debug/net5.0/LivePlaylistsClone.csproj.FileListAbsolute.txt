@@ -17,7 +17,3 @@ C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\obj\Debug\
 C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\FluentScheduler.dll
 C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\Newtonsoft.Json.dll
 C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\obj\Debug\net5.0\LivePlaylistsClone.csproj.CopyComplete
-C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\SpotifyAPI.Web.dll
-C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\EmbedIO.dll
-C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\SpotifyAPI.Web.Auth.dll
-C:\Users\97253\Documents\GitHub\LivePlaylistsClone\LivePlaylistsClone\bin\Debug\net5.0\Swan.Lite.dll

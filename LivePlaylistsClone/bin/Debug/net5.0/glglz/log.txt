@@ -1,7 +1,7 @@
-Artist: Alex Kapranos;Clara Luciani
-Title: Summer Wine
-Album: Summer Wine
-Release Date: 2020-07-29
-Label: Domino Recording Co
-Timecode: 03:47
-Song Link: https://lis.tn/SummerWine
+Artist: Dionne Warwick with Elton John, Gladys Knight & Stevie Wonder
+Title: That's What Friends Are For
+Album: Clive Davis: The Soundtrack of Our Lives
+Release Date: 2017-09-29
+Label: Mercury
+Timecode: 00:08
+Song Link: https://lis.tn/IFjFz

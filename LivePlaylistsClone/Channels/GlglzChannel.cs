@@ -1,4 +1,5 @@
-﻿using System;
+﻿using LivePlaylistsClone.Models;
+using System;
 using System.IO;
 
 namespace LivePlaylistsClone.Channels
@@ -21,24 +22,37 @@ namespace LivePlaylistsClone.Channels
 
         public override void Execute()
         {
-            //SaveChunkToFile(".\\glglz\\sample.mp3");
-            //var root = UploadChunkToAPI(".\\glglz\\sample.mp3");
+            SaveChunkToFile(".\\glglz\\sample.mp3");
+            var root = UploadChunkToAPI(".\\glglz\\sample.mp3");
 
-            //if (root.result == null)
-            //{
-            //    if we got here, this means there wasn't a song playing
-            //     reason: traffic highlights, breaking news, or some talk show
-            //    return;
-            //}
+            if (root.result == null)
+            {
+                //if we got here, this means there wasn't a song playing
+                // reason: traffic highlights, breaking news, or some talk show
+                return;
+            }
 
-            AddSongToPlaylist("https://lis.tn/SummerWine");
+            Track track = ExtractTrack(root.result.song_link);
+            Track dbTrack = ReadTrackFromDatabase("glglz");
 
-            //SaveSongToPlaylist(root.result.song_link);
+            if (dbTrack != null)
+            {
+                if (track.Id.Equals(dbTrack.Id))
+                {
+                    // we matched the same song in the same timeframe
+                    // so we exit from the subroutine until there's a
+                    // new match.
+                    return;
+                }
+            }
 
-            //string rootContent = root.result.ToString();
+            AddSongToPlaylistByTrackId(track.Id);
+            SaveTrackToDatabase(track, "glglz");
 
-            //Console.WriteLine(rootContent);
-            //File.WriteAllText(".\\glglz\\log.txt", rootContent);
+            string rootContent = root.result.ToString();
+
+            Console.WriteLine(rootContent);
+            File.WriteAllText(".\\glglz\\log.txt", rootContent);
         }
     }
 }
