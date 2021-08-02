@@ -15,17 +15,8 @@ namespace LivePlaylistsClone.Channels
     {
         protected string StreamUrl;
 
-        private const string auddio_token = "bb69028c3a890fb949361f676519cb02"; // get your own token at https://dashboard.audd.io/
-
-        private const string spotify_token =
-            "BQB3004GXatLUIC_00UIZSxgHEV7qe8wttJPCbptt9cafu7MhrdiKORPTy3EUGP7zRqm_ohssgsX95u80ns"; // https://github.com/JMPerez/spotify-web-api-token
-
-        private readonly SpotifyClient _spotify;
-
-        public BaseChannel()
-        {
-            _spotify = new SpotifyClient(spotify_token);
-        }
+        private const string auddio_token = "bb69028c3a890fb949361f676519cb02"; // https://dashboard.audd.io/
+        private const string spotify_token = "BQClIPvQX-zLm4TjtipaCL2cElwXMg2-i6rBZUN1AVH4FPh5q4EsE62cWComEQavpFEXdJ9vvXb79nCc_DG9j9FCA7eaaSy20BWj3aJp2yDe1XCLCs1mRLCz_3OlD94NBDOYrLYMYN2LA75H-WTmBUQXncyVZqg2-B-6Y7bhyZ-nA982MF6--PyT1Is3LQL-Jvn5JWSTtuJGx1Kmi2whxM61h5hDT8o4iJJwe1ZhUDmquaZHpR6PwqdBPC-lctdgeTYPKDtfa0aiH8NP3kPdjHk5TDEpQr7-9a-O-TQLKS0w"; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
 
         public abstract void Execute();
 
@@ -75,7 +66,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected async void SaveSongToPlaylist(string song_link)
+        protected async void AddSongToPlaylist(string song_link)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -86,13 +77,18 @@ namespace LivePlaylistsClone.Channels
                 {
                     string trackId = match.Groups[1].Value;
 
-                    RootUris uris = new RootUris();
-                    uris.AddUri($"spotify:track:{trackId}");
+                    webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+                    webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
 
-                    string json = JsonConvert.SerializeObject(uris);
+                    NameValueCollection values = new NameValueCollection();
+                    values.Add("uris", $"spotify:track:{trackId}");
 
-                    var item = new PlaylistAddItemsRequest(new List<string> {json});
-                    await _spotify.Playlists.AddItems("5mLHWcR8C3ObKYdKxTyzyY", item);
+                    webClient.QueryString = values;
+
+                    string endpoint = "https://api.spotify.com/v1/playlists/5mLHWcR8C3ObKYdKxTyzyY/tracks";
+
+                    string response = webClient.UploadString(endpoint, "");
                 }
             }
         }

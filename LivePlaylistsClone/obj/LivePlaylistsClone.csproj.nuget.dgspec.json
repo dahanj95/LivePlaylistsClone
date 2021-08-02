@@ -51,14 +51,6 @@
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.1, )"
-            },
-            "SpotifyAPI.Web": {
-              "target": "Package",
-              "version": "[6.2.0, )"
-            },
-            "SpotifyAPI.Web.Auth": {
-              "target": "Package",
-              "version": "[6.2.0, )"
             }
           },
           "imports": [

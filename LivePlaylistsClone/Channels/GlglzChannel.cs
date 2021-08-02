@@ -22,21 +22,23 @@ namespace LivePlaylistsClone.Channels
         public override void Execute()
         {
             //SaveChunkToFile(".\\glglz\\sample.mp3");
-            var root = UploadChunkToAPI(".\\glglz\\sample.mp3");
+            //var root = UploadChunkToAPI(".\\glglz\\sample.mp3");
 
-            if (root.result == null)
-            {
-                // if we got here, this means there wasn't a song playing
-                // reason: traffic highlights, breaking news, or some talk show
-                return;
-            }
+            //if (root.result == null)
+            //{
+            //    if we got here, this means there wasn't a song playing
+            //     reason: traffic highlights, breaking news, or some talk show
+            //    return;
+            //}
 
-            SaveSongToPlaylist(root.result.song_link);
+            AddSongToPlaylist("https://lis.tn/SummerWine");
 
-            string rootContent = root.result.ToString();
+            //SaveSongToPlaylist(root.result.song_link);
 
-            Console.WriteLine(rootContent);
-            File.WriteAllText(".\\glglz\\log.txt", rootContent);
+            //string rootContent = root.result.ToString();
+
+            //Console.WriteLine(rootContent);
+            //File.WriteAllText(".\\glglz\\log.txt", rootContent);
         }
     }
 }
