@@ -32,7 +32,15 @@ namespace LivePlaylistsClone.Channels
                 return;
             }
 
-            Track track = ExtractTrack(root.result.song_link);
+            Track track = ExtractTrack(root.result.spotify);
+
+            if (track.Id == null)
+            {
+                // if we got here, this means there's no spotify
+                // recognition id for the current song
+                return;
+            }
+
             Track dbTrack = ReadTrackFromDatabase("glglz");
 
             if (dbTrack != null)

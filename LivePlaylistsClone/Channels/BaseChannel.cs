@@ -2,6 +2,7 @@
 using LivePlaylistsClone.Models;
 using Newtonsoft.Json;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -13,10 +14,25 @@ namespace LivePlaylistsClone.Channels
     {
         protected string StreamUrl;
 
-        private const string auddio_token = "bb69028c3a890fb949361f676519cb02"; // https://dashboard.audd.io/
-        private const string spotify_token = "BQClIPvQX-zLm4TjtipaCL2cElwXMg2-i6rBZUN1AVH4FPh5q4EsE62cWComEQavpFEXdJ9vvXb79nCc_DG9j9FCA7eaaSy20BWj3aJp2yDe1XCLCs1mRLCz_3OlD94NBDOYrLYMYN2LA75H-WTmBUQXncyVZqg2-B-6Y7bhyZ-nA982MF6--PyT1Is3LQL-Jvn5JWSTtuJGx1Kmi2whxM61h5hDT8o4iJJwe1ZhUDmquaZHpR6PwqdBPC-lctdgeTYPKDtfa0aiH8NP3kPdjHk5TDEpQr7-9a-O-TQLKS0w"; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
+        private const string auddio_token = "AUDDIO_TOKEN"; // https://dashboard.audd.io/
+        private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
+
+        public BaseChannel()
+        {
+            Schedule(AcquireNewToken).ToRunEvery(2).Minutes();
+
+            spotify_token = File.ReadAllText(".\\net5.0\\token.txt");
+        }
 
         public abstract void Execute();
+
+        private void AcquireNewToken()
+        {
+            var p = Process.Start(".\\net5.0\\tokengenerator.exe");
+            p.WaitForExit();
+
+            spotify_token = File.ReadAllText(".\\net5.0\\token.txt");
+        }
 
         // This method saves a 128KB chunk of the steam to a local file
         protected void SaveChunkToFile(string fileName)
@@ -46,7 +62,7 @@ namespace LivePlaylistsClone.Channels
         {
             NameValueCollection formData = new NameValueCollection();
             formData.Add("api_token", auddio_token);
-            formData.Add("return", "spotify");
+            formData.Add("return", "spotify, apple_music");
 
             string jsonResult = ExecuteRequestSendFile("https://api.audd.io/recognize", formData, fileName);
             return JsonConvert.DeserializeObject<Root>(jsonResult);
@@ -78,25 +94,13 @@ namespace LivePlaylistsClone.Channels
                 webClient.QueryString = values;
 
                 string endpoint = "https://api.spotify.com/v1/playlists/5mLHWcR8C3ObKYdKxTyzyY/tracks";
-
                 string response = webClient.UploadString(endpoint, "");
             }
         }
 
-        protected Track ExtractTrack(string song_link)
+        protected Track ExtractTrack(Spotify spotify)
         {
-            using (WebClient webClient = new WebClient())
-            {
-                string content = webClient.DownloadString(song_link);
-                var match = Regex.Match(content, "data-uri=\"spotify://track/([0-9a-zA-Z]+)\"");
-
-                if (match.Success)
-                {
-                    return new Track { Id = match.Groups[1].Value };
-                }
-
-                return new Track();
-            }
+            return new() {Id = spotify.id};
         }
 
         protected Track ReadTrackFromDatabase(string channelName)
