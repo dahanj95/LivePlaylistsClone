@@ -8,6 +8,11 @@
   <ItemGroup>
     <PackageReference Include="FluentScheduler" Version="5.5.1" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="PuppeteerSharp" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Clients\" />
   </ItemGroup>
 
 </Project>

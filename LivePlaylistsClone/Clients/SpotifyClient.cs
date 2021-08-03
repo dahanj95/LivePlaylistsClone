@@ -1,38 +1,42 @@
-﻿using PuppeteerSharp;
-using System;
+﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
+using PuppeteerSharp;
 
-namespace TokenGenerator
+namespace LivePlaylistsClone.Clients
 {
-    class Program
+    public class SpotifyClient : IDisposable
     {
-        private static Page _view;
-        private const string userName = "SPOTIFY_USERNAME";
-        private const string passWord = "SPOTIFY_PASSWORD";
+        private Page _view;
+        private Browser _browser;
 
-        static async Task Main(string[] args)
+        private const string userName = "";
+        private const string passWord = "";
+
+        public SpotifyClient()
         {
-            var browser = await Puppeteer.LaunchAsync(new LaunchOptions
-            {
-                Headless = true,
-                DefaultViewport = new ViewPortOptions { DeviceScaleFactor = 1.0 },
-                Args = new[] { "--disable-blink-features=AutomationControlled" },
-                ExecutablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
-            });
-
-            _view = await browser.NewPageAsync();
-
-            await Login();
-            string token = await GetToken();
-
-            await browser.CloseAsync();
-
-            File.WriteAllText(".\\net5.0\\token.txt",token);
+            InitBrowser().Wait();
         }
 
-        static async Task Login()
+        private async Task InitBrowser()
+        {
+            _browser = await Puppeteer.LaunchAsync(new LaunchOptions
+            {
+                Headless = false,
+                DefaultViewport = new ViewPortOptions { DeviceScaleFactor = 1.0 },
+                Args = new[] { "--disable-blink-features=AutomationControlled" },
+                ExecutablePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+            });
+
+            _view = await _browser.NewPageAsync();
+        }
+
+        public async void Dispose()
+        {
+            await _browser.CloseAsync();
+        }
+
+        public async Task Login()
         {
             await _view.GoToAsync("https://accounts.spotify.com/en/login");
 
@@ -48,7 +52,7 @@ namespace TokenGenerator
             );
         }
 
-        static async Task<string> GetToken()
+        public async Task<string> GetToken()
         {
             await _view.GoToAsync("https://developer.spotify.com/console/post-playlist-tracks/");
 

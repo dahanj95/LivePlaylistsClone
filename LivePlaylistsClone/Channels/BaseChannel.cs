@@ -8,6 +8,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using LivePlaylistsClone.Clients;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -18,7 +19,7 @@ namespace LivePlaylistsClone.Channels
         protected string PlaylistId;
 
         private string auddio_token = ""; // https://dashboard.audd.io/
-        protected string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
+        private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
 
         public BaseChannel()
         {
@@ -67,6 +68,11 @@ namespace LivePlaylistsClone.Channels
             File.WriteAllText($".\\{ChannelName}\\log.txt", rootContent);
         }
 
+        protected void SetToken(string token)
+        {
+            spotify_token = token;
+        }
+
         private void CreateWorkingFolder()
         {
             if (!Directory.Exists($".\\{ChannelName}\\"))
@@ -77,7 +83,7 @@ namespace LivePlaylistsClone.Channels
 
         private void ReadSpotifyToken()
         {
-            spotify_token = File.ReadAllText(".\\net5.0\\token.txt");
+            spotify_token = File.ReadAllText(".\\token.txt");
         }
 
         // This method saves a 128KB chunk of the steam to a local file
