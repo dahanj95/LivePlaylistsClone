@@ -11,6 +11,7 @@ namespace LivePlaylistsClone
         {
             List<BaseChannel> channels = new List<BaseChannel>
             {
+                new TokenChannel(), // generates a new token every 57 minutes
                 new GlglzChannel(),
                 new Kan88Channel()
             };

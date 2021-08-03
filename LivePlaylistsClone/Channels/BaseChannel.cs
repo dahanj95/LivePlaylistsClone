@@ -18,13 +18,12 @@ namespace LivePlaylistsClone.Channels
         protected string PlaylistId;
 
         private string auddio_token = ""; // https://dashboard.audd.io/
-        private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
+        protected string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
 
         public BaseChannel()
         {
             // scheduled
-            Schedule(AcquireNewToken).ToRunEvery(15).Seconds();
-            Schedule(Execute).ToRunNow().AndEvery(555).Seconds();
+            Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
 
             // run now
             Schedule(ReadSpotifyToken).ToRunNow();
@@ -78,14 +77,6 @@ namespace LivePlaylistsClone.Channels
 
         private void ReadSpotifyToken()
         {
-            spotify_token = File.ReadAllText(".\\net5.0\\token.txt");
-        }
-
-        private void AcquireNewToken()
-        {
-            var p = Process.Start(".\\net5.0\\tokengenerator.exe");
-            p.WaitForExit();
-
             spotify_token = File.ReadAllText(".\\net5.0\\token.txt");
         }
 
