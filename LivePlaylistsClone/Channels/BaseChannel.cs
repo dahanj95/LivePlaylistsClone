@@ -15,6 +15,7 @@ namespace LivePlaylistsClone.Channels
     {
         protected string StreamUrl;
         protected string ChannelName;
+        protected string PlaylistId;
 
         private string auddio_token = ""; // https://dashboard.audd.io/
         private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
@@ -147,7 +148,7 @@ namespace LivePlaylistsClone.Channels
 
                 webClient.QueryString = values;
 
-                string endpoint = "https://api.spotify.com/v1/playlists/5mLHWcR8C3ObKYdKxTyzyY/tracks";
+                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}/tracks";
                 string response = webClient.UploadString(endpoint, "");
             }
         }

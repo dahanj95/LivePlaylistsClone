@@ -10,6 +10,7 @@ namespace LivePlaylistsClone.Channels
         {
             ChannelName = "glglz";
             StreamUrl = "https://glzwizzlv.bynetcdn.com/glglz_mp3";
+            PlaylistId = "5mLHWcR8C3ObKYdKxTyzyY";
         }
     }
 }
