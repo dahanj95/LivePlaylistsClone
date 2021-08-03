@@ -1,6 +1,7 @@
 ﻿using FluentScheduler;
 using LivePlaylistsClone.Models;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
@@ -13,17 +14,66 @@ namespace LivePlaylistsClone.Channels
     public abstract class BaseChannel : Registry, IJob
     {
         protected string StreamUrl;
+        protected string ChannelName;
 
         private string auddio_token = ""; // https://dashboard.audd.io/
         private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
 
         public BaseChannel()
         {
-            Schedule(AcquireNewToken).ToRunEvery(2).Minutes();
+            // scheduled
+            Schedule(AcquireNewToken).ToRunEvery(15).Seconds();
+            Schedule(Execute).ToRunNow().AndEvery(555).Seconds();
+
+            // run now
             Schedule(ReadSpotifyToken).ToRunNow();
+            Schedule(CreateWorkingFolder).ToRunNow();
         }
 
-        public abstract void Execute();
+        public void Execute()
+        {
+            SaveChunkToFile($".\\{ChannelName}\\sample.mp3");
+            var root = UploadChunkToAPI($".\\{ChannelName}\\sample.mp3");
+
+            if (root.result?.spotify == null)
+            {
+                // if we got here, this means there wasn't a song playing
+                // reasons: traffic highlights, breaking news, or some talk show
+                // or
+                // there's no Spotify recognition id for the current song
+                return;
+            }
+
+            Track track = ExtractTrack(root.result.spotify);
+            Track dbTrack = ReadTrackFromDatabase(ChannelName);
+
+            if (dbTrack != null)
+            {
+                if (track.Id.Equals(dbTrack.Id))
+                {
+                    // we matched the same song in the same timeframe
+                    // so we exit from the subroutine until there's a
+                    // new match.
+                    return;
+                }
+            }
+
+            AddSongToPlaylistByTrackId(track.Id);
+            SaveTrackToDatabase(track, ChannelName);
+
+            string rootContent = root.result.ToString();
+
+            Console.WriteLine(rootContent);
+            File.WriteAllText($".\\{ChannelName}\\log.txt", rootContent);
+        }
+
+        private void CreateWorkingFolder()
+        {
+            if (!Directory.Exists($".\\{ChannelName}\\"))
+            {
+                Directory.CreateDirectory($".\\{ChannelName}\\");
+            }
+        }
 
         private void ReadSpotifyToken()
         {

@@ -11,7 +11,8 @@ namespace LivePlaylistsClone
         {
             List<BaseChannel> channels = new List<BaseChannel>
             {
-                new GlglzChannel()
+                new GlglzChannel(),
+                new Kan88Channel()
             };
 
             JobManager.Initialize(channels.ToArray());
