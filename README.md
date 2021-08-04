@@ -8,7 +8,7 @@ The app monitors the channel every 30 seconds, it saves an 8 second chunk (128KB
 - Finished implementing the spotify playlist support. The playlist can be found [here](https://open.spotify.com/playlist/5mLHWcR8C3ObKYdKxTyzyY?si=7bbc1536145c40f0).
 
 # Extending channels
-Currently I implemented Galgalatz (גלגל"צ) only, but extending to more channels is quite easy. You create a new *class* with the channel name in the "**Channels**" folder and inherit from `BaseChannel`. Then, you supply a url of the stream initialized at ctor. You must implement the logic of `Execute` method which does the saving of the chunk and uploading to the api.
+Currently I implemented Galgalatz (גלגל"צ) and Kan 88 (כאן 88), but extending to more channels is quite easy. You create a new *class* with the channel name (and "Channel" suffix) in the "**Channels**" folder and inherit from `BaseChannel`. Then, you supply three properties. A url of the stream (`StreamUrl`), channel name (`ChannelName`) and the id of the spotify playlist (`PlaylistId`) initialized at ctor.
 
 # Final words
 Remember, this is a clone... it might not work exactly as the original work by Yaniv, but it has potential to continue development into a real-world app used by others. You may fork and modify the source, develop on your own and do what ever you want.
