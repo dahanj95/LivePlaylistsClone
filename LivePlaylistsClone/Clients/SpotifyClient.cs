@@ -11,8 +11,8 @@ namespace LivePlaylistsClone.Clients
         private Page _view;
         private Browser _browser;
 
-        private const string userName = "";
-        private const string passWord = "";
+        private const string userName = "dahanj95@gmail.com";
+        private const string passWord = "g^2Bkk_ckwVvrc_";
 
         public SpotifyClient()
         {

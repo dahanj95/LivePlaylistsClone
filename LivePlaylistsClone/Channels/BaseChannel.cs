@@ -88,7 +88,10 @@ namespace LivePlaylistsClone.Channels
 
         private void ReadSpotifyToken()
         {
-            spotify_token = File.ReadAllText(".\\token.txt");
+            lock (spotify_token)
+            {
+                spotify_token = File.ReadAllText(".\\token.txt");
+            }
         }
 
         // This method saves a 128KB chunk of the steam to a local file
