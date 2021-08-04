@@ -146,7 +146,11 @@ namespace LivePlaylistsClone.Channels
             {
                 webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
                 webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
-                webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+
+                lock (spotify_token)
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+                }
 
                 NameValueCollection values = new NameValueCollection();
                 values.Add("uris", $"spotify:track:{trackId}");
