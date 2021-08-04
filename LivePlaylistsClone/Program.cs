@@ -2,6 +2,7 @@
 using LivePlaylistsClone.Channels;
 using System;
 using System.Collections.Generic;
+using DotNetEnv;
 
 namespace LivePlaylistsClone
 {
@@ -14,6 +15,8 @@ namespace LivePlaylistsClone
                 new GlglzChannel(),
                 new Kan88Channel()
             };
+
+            Env.Load();
 
             JobManager.Initialize(channels.ToArray());
 

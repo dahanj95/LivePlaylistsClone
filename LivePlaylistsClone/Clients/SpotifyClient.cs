@@ -1,8 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using LivePlaylistsClone.Contracts;
+﻿using LivePlaylistsClone.Contracts;
 using PuppeteerSharp;
+using System;
+using System.Threading.Tasks;
+using DotNetEnv;
 
 namespace LivePlaylistsClone.Clients
 {
@@ -11,12 +11,15 @@ namespace LivePlaylistsClone.Clients
         private Page _view;
         private Browser _browser;
 
-        private const string userName = "";
-        private const string passWord = "";
+        private readonly string userName = "";
+        private readonly string passWord = "";
 
         public SpotifyClient()
         {
             InitBrowser().Wait();
+
+            userName = Env.GetString("SPOTIFY_ID");
+            passWord = Env.GetString("SPOTIFY_PW");
         }
 
         private async Task InitBrowser()

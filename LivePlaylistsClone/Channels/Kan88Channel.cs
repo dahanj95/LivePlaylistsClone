@@ -1,8 +1,4 @@
-﻿using LivePlaylistsClone.Models;
-using System;
-using System.IO;
-
-namespace LivePlaylistsClone.Channels
+﻿namespace LivePlaylistsClone.Channels
 {
     public class Kan88Channel : BaseChannel
     {

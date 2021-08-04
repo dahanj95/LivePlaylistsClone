@@ -1,13 +1,11 @@
 ﻿using LivePlaylistsClone.Clients;
 using LivePlaylistsClone.Contracts;
-using LivePlaylistsClone.Models;
-using System;
 using System.IO;
 
 namespace LivePlaylistsClone.Channels
 {
     // it's important to mark only a single class as ITokenGenerator so execution will be once
-    public class GlglzChannel : BaseChannel, ITokenGenerator 
+    public class GlglzChannel : BaseChannel, ITokenGenerator
     {
         public GlglzChannel()
         {
@@ -19,7 +17,7 @@ namespace LivePlaylistsClone.Channels
         }
 
         // this method generates a new oauth token every 55 minutes
-        public async void GenerateToken() 
+        public async void GenerateToken()
         {
             using (SpotifyClient client = new SpotifyClient())
             {

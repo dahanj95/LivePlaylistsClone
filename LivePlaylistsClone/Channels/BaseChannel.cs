@@ -3,12 +3,10 @@ using LivePlaylistsClone.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
-using LivePlaylistsClone.Clients;
+using DotNetEnv;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -86,6 +84,14 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
+        private void ReadAuddioToken()
+        {
+            lock (auddio_token)
+            {
+                auddio_token = Env.GetString("AUDDIO_TOKEN");
+            }
+        }
+
         private void ReadSpotifyToken()
         {
             lock (spotify_token)
@@ -121,7 +127,12 @@ namespace LivePlaylistsClone.Channels
         protected Root UploadChunkToAPI(string fileName)
         {
             NameValueCollection formData = new NameValueCollection();
-            formData.Add("api_token", auddio_token);
+
+            lock (auddio_token)
+            {
+                formData.Add("api_token", auddio_token);
+            }
+          
             formData.Add("return", "spotify, apple_music");
 
             string jsonResult = ExecuteRequestSendFile("https://api.audd.io/recognize", formData, fileName);
@@ -167,7 +178,7 @@ namespace LivePlaylistsClone.Channels
         {
             return new Track
             {
-                Id = result.spotify.id, 
+                Id = result.spotify.id,
                 Title = result.title
             };
         }
