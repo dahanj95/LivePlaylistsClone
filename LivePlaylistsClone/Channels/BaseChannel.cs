@@ -25,6 +25,7 @@ namespace LivePlaylistsClone.Channels
             Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
 
             // run now
+            Schedule(ReadAuddioToken).ToRunNow();
             Schedule(ReadSpotifyToken).ToRunNow();
             Schedule(CreateWorkingFolder).ToRunNow();
         }
