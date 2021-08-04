@@ -38,6 +38,7 @@ namespace LivePlaylistsClone.Channels
 
             if (root.result?.spotify == null)
             {
+                File.AppendAllText(".\\log.txt", root.result?.ToString());
                 // if we got here, this means there wasn't a song playing
                 // reasons: traffic highlights, breaking news, or some talk show
                 // or
@@ -45,16 +46,17 @@ namespace LivePlaylistsClone.Channels
                 return;
             }
 
-            Track track = ExtractTrack(root.result.spotify);
+            Track track = ExtractTrack(root.result);
             Track dbTrack = ReadTrackFromDatabase(ChannelName);
 
             if (dbTrack != null)
             {
-                if (track.Id.Equals(dbTrack.Id))
+                if (track.Equals(dbTrack))
                 {
-                    // we matched the same song in the same timeframe
+                    // we matched the same song in the same timeframe (different offset)
                     // so we exit from the subroutine until there's a
                     // new match.
+                    // to-do: implement a potential manual search logic on Spotify
                     return;
                 }
             }
@@ -68,9 +70,12 @@ namespace LivePlaylistsClone.Channels
             File.WriteAllText($".\\{ChannelName}\\log.txt", rootContent);
         }
 
-        protected void SetToken(string token)
+        protected void SetOAuthToken(string oauth_token)
         {
-            spotify_token = token;
+            lock (spotify_token)
+            {
+                spotify_token = oauth_token;
+            }
         }
 
         private void CreateWorkingFolder()
@@ -142,6 +147,7 @@ namespace LivePlaylistsClone.Channels
 
                 NameValueCollection values = new NameValueCollection();
                 values.Add("uris", $"spotify:track:{trackId}");
+                values.Add("position", "0");
 
                 webClient.QueryString = values;
 
@@ -150,9 +156,13 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected Track ExtractTrack(Spotify spotify)
+        protected Track ExtractTrack(Result result)
         {
-            return new() {Id = spotify.id};
+            return new Track
+            {
+                Id = result.spotify.id, 
+                Title = result.title
+            };
         }
 
         protected Track ReadTrackFromDatabase(string channelName)
