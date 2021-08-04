@@ -19,7 +19,7 @@ namespace LivePlaylistsClone.Channels
         protected string PlaylistId;
 
         private string auddio_token = ""; // https://dashboard.audd.io/
-        private string spotify_token; // https://developer.spotify.com/console/post-playlist-tracks/?playlist_id=&position=&uris=
+        private string spotify_token = ""; // https://developer.spotify.com/console/post-playlist-tracks/
 
         public BaseChannel()
         {
