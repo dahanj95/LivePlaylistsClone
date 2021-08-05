@@ -8,7 +8,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using DotNetEnv;
-using LivePlaylistsClone.DAL;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -24,12 +23,8 @@ namespace LivePlaylistsClone.Channels
         private string auddio_token = ""; // https://dashboard.audd.io/
         private string spotify_token = ""; // https://developer.spotify.com/console/post-playlist-tracks/
 
-        private readonly PlaylistRepository _playlistRepository;
-
         public BaseChannel()
         {
-            _playlistRepository = new PlaylistRepository(ChannelName);
-
             // scheduled
             Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
 
@@ -37,7 +32,6 @@ namespace LivePlaylistsClone.Channels
             Schedule(ReadAuddioToken).ToRunNow();
             Schedule(ReadSpotifyToken).ToRunNow();
             Schedule(CreateWorkingFolder).ToRunNow();
-            Schedule(SavePlaylistToDatabaseStartup).ToRunNow();
         }
 
         public void Execute()
@@ -70,13 +64,14 @@ namespace LivePlaylistsClone.Channels
                 }
             }
 
-            if (_playlistRepository.Count == 100)
+            var remotePlaylist = GetRemotePlaylist();
+
+            if (remotePlaylist.tracks.items.Count == 100)
             {
-                Item item = _playlistRepository.Last;
-                RemoveTrackFromRemotePlaylistById(item.track.id);
-                _playlistRepository.RemoveTrackFromLocalPlaylist(item);
+                Track2 track2 = remotePlaylist.tracks.items.Last().track;
+                RemoveTrackFromRemotePlaylistById(track2.id);
             }
-            
+
             AddSongToRemotePlaylistByTrackId(track.Id);
             SaveTrackToDatabase(track, ChannelName);
 
@@ -192,7 +187,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private string GetPlaylistAsJson()
+        private Playlist GetRemotePlaylist()
         {
             using (WebClient webClient = new WebClient())
             {
@@ -207,15 +202,8 @@ namespace LivePlaylistsClone.Channels
                 string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}";
                 string response = webClient.DownloadString(endpoint);
 
-                return response;
+                return JsonConvert.DeserializeObject<Playlist>(response);
             }
-        }
-
-        private void SavePlaylistToDatabaseStartup()
-        {
-            string raw = GetPlaylistAsJson();
-            Playlist playlist = JsonConvert.DeserializeObject<Playlist>(raw);
-            _playlistRepository.SavePlaylistToDatabase(playlist);
         }
 
         private void RemoveTrackFromRemotePlaylistById(string id)
