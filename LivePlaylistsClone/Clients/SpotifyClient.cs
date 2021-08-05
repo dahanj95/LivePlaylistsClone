@@ -6,7 +6,7 @@ using DotNetEnv;
 
 namespace LivePlaylistsClone.Clients
 {
-    public class SpotifyClient : IDisposable, ILoginable, ITokenRequester
+    public class SpotifyClient : IDisposable, ILoginable, ITokenRequester, ISleepable
     {
         private Page _view;
         private Browser _browser;
@@ -88,7 +88,6 @@ namespace LivePlaylistsClone.Clients
         public async Task SubmitPrivilegeForm()
         {
             await _view.ClickAsync("#oauthRequestToken");
-            await _view.WaitForTimeoutAsync(1000);
         }
 
         public async Task Sleep(int timeout)
