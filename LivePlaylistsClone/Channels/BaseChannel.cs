@@ -71,7 +71,7 @@ namespace LivePlaylistsClone.Channels
                 var lastItem = GetPlaylistLastItem();
                 var lastTrack = lastItem.items[0].track;
 
-                RemoveTrackFromRemotePlaylistById(lastTrack.id);
+                DeleteTrackFromPlaylistById(lastTrack.id);
             }
 
             AddSongToRemotePlaylistByTrackId(track.Id);
@@ -234,7 +234,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private void RemoveTrackFromRemotePlaylistById(string id)
+        private void DeleteTrackFromPlaylistById(string id)
         {
             using (WebClient webClient = new WebClient())
             {
