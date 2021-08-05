@@ -16,6 +16,9 @@ namespace LivePlaylistsClone.Channels
         protected string ChannelName;
         protected string PlaylistId;
 
+        private readonly object auddio_lock = new object();
+        private readonly object spotify_lock = new object();
+
         private string auddio_token = ""; // https://dashboard.audd.io/
         private string spotify_token = ""; // https://developer.spotify.com/console/post-playlist-tracks/
 
@@ -24,7 +27,7 @@ namespace LivePlaylistsClone.Channels
             // scheduled
             Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
 
-            // run now
+            // run once
             Schedule(ReadAuddioToken).ToRunNow();
             Schedule(ReadSpotifyToken).ToRunNow();
             Schedule(CreateWorkingFolder).ToRunNow();
@@ -33,7 +36,7 @@ namespace LivePlaylistsClone.Channels
         public void Execute()
         {
             SaveChunkToFile($".\\{ChannelName}\\sample.mp3");
-            var root = UploadChunkToAPI($".\\{ChannelName}\\sample.mp3");
+            var root = UploadChunkToAuddio($".\\{ChannelName}\\sample.mp3");
 
             if (root.result?.spotify == null)
             {
@@ -60,6 +63,7 @@ namespace LivePlaylistsClone.Channels
                 }
             }
 
+            RemoveLastItemFromPlaylist();
             AddSongToPlaylistByTrackId(track.Id);
             SaveTrackToDatabase(track, ChannelName);
 
@@ -71,7 +75,7 @@ namespace LivePlaylistsClone.Channels
 
         protected void SetOAuthToken(string oauth_token)
         {
-            lock (spotify_token)
+            lock (spotify_lock)
             {
                 spotify_token = oauth_token;
             }
@@ -87,7 +91,7 @@ namespace LivePlaylistsClone.Channels
 
         private void ReadAuddioToken()
         {
-            lock (auddio_token)
+            lock (auddio_lock)
             {
                 auddio_token = Env.GetString("AUDDIO_TOKEN");
             }
@@ -95,14 +99,14 @@ namespace LivePlaylistsClone.Channels
 
         private void ReadSpotifyToken()
         {
-            lock (spotify_token)
+            lock (spotify_lock)
             {
                 spotify_token = File.ReadAllText(".\\token.txt");
             }
         }
 
         // This method saves a 128KB chunk of the steam to a local file
-        protected void SaveChunkToFile(string fileName)
+        private void SaveChunkToFile(string fileName)
         {
             HttpWebRequest HttpRequest = (HttpWebRequest)WebRequest.Create(StreamUrl);
 
@@ -125,11 +129,11 @@ namespace LivePlaylistsClone.Channels
         }
 
         // this method uploads the saved chunk to the api for recognition
-        protected Root UploadChunkToAPI(string fileName)
+        private Root UploadChunkToAuddio(string fileName)
         {
             NameValueCollection formData = new NameValueCollection();
 
-            lock (auddio_token)
+            lock (auddio_lock)
             {
                 formData.Add("api_token", auddio_token);
             }
@@ -152,14 +156,14 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected void AddSongToPlaylistByTrackId(string trackId)
+        private void AddSongToPlaylistByTrackId(string trackId)
         {
             using (WebClient webClient = new WebClient())
             {
                 webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
                 webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
 
-                lock (spotify_token)
+                lock (spotify_lock)
                 {
                     webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
                 }
@@ -175,7 +179,34 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        protected Track ExtractTrack(Result result)
+        private void RemoveLastItemFromPlaylist()
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+                webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+                lock (spotify_lock)
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+                }
+
+                RootRemove root = new RootRemove();
+
+                Track1 track = new Track1();
+                track.uri = "";
+                track.positions.Add(100);
+
+                root.tracks.Add(track);
+
+                string formData = JsonConvert.SerializeObject(root);
+
+                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}/tracks";
+                string response = webClient.UploadString(endpoint, formData);
+            }
+        }
+
+        private Track ExtractTrack(Result result)
         {
             return new Track
             {
@@ -184,7 +215,7 @@ namespace LivePlaylistsClone.Channels
             };
         }
 
-        protected Track ReadTrackFromDatabase(string channelName)
+        private Track ReadTrackFromDatabase(string channelName)
         {
             if (File.Exists($".\\{channelName}\\database.json"))
             {
@@ -195,7 +226,7 @@ namespace LivePlaylistsClone.Channels
             return null;
         }
 
-        protected void SaveTrackToDatabase(Track track, string channelName)
+        private void SaveTrackToDatabase(Track track, string channelName)
         {
             string raw = JsonConvert.SerializeObject(track);
             File.WriteAllText($".\\{channelName}\\database.json", raw);

@@ -71,27 +71,29 @@ namespace LivePlaylistsClone.Clients
         {
             var btnRequestToken = await _view.XPathAsync("//*[@id='console-form']/div[4]/div/span/button");
             await btnRequestToken[0].ClickAsync();
-            await _view.WaitForTimeoutAsync(2000);
         }
 
         public async Task FillPrivilegeForm()
         {
             await _view.ClickAsync("#scope-playlist-modify-public");
             await _view.ClickAsync("#scope-playlist-modify-private");
-            await _view.WaitForTimeoutAsync(1000);
         }
 
         public async Task AgreePolicy()
         {
             var btnAgree = await _view.XPathAsync("//div[@id='onetrust-close-btn-container']/button");
             await btnAgree[0].ClickAsync();
-            await _view.WaitForTimeoutAsync(750);
         }
 
         public async Task SubmitPrivilegeForm()
         {
             await _view.ClickAsync("#oauthRequestToken");
             await _view.WaitForTimeoutAsync(1000);
+        }
+
+        public async Task Sleep(int timeout)
+        {
+            await _view.WaitForTimeoutAsync(timeout);
         }
 
         public async Task<string> GetOAuthToken()

@@ -27,6 +27,7 @@ namespace LivePlaylistsClone.Channels
 
                 await client.GoToTokenView();
                 await client.ShowPrivilegeDialog();
+                await client
                 await client.FillPrivilegeForm();
                 await client.AgreePolicy();
                 await client.SubmitPrivilegeForm();
