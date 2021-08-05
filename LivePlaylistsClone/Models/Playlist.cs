@@ -122,7 +122,7 @@ namespace LivePlaylistsClone.Models
         public int total { get; set; }
     }
 
-    public class Root2
+    public class Playlist
     {
         public bool collaborative { get; set; }
         public string description { get; set; }

@@ -13,11 +13,11 @@ namespace LivePlaylistsClone.Models
         }
     }
 
-    public class Root1
+    public class Deletion
     {
         public List<Track1> tracks { get; set; }
 
-        public Root1()
+        public Deletion()
         {
             tracks = new List<Track1>();
         }

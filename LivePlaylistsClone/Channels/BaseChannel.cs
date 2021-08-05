@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using DotNetEnv;
@@ -63,7 +64,12 @@ namespace LivePlaylistsClone.Channels
                 }
             }
 
-            RemoveLastItemFromPlaylist();
+            var playlist = GetPlaylistItems();
+            if (playlist.tracks.items.Count == 100)
+            {
+                RemoveLastItemFromPlaylist(playlist);
+            }
+            
             AddSongToPlaylistByTrackId(track.Id);
             SaveTrackToDatabase(track, ChannelName);
 
@@ -179,7 +185,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private void RemoveLastItemFromPlaylist()
+        private Playlist GetPlaylistItems()
         {
             using (WebClient webClient = new WebClient())
             {
@@ -191,15 +197,36 @@ namespace LivePlaylistsClone.Channels
                     webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
                 }
 
-                RootRemove root = new RootRemove();
+                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}";
+                string response = webClient.DownloadString(endpoint);
+
+                return JsonConvert.DeserializeObject<Playlist>(response);
+            }
+        }
+
+        private void RemoveLastItemFromPlaylist(Playlist playlist)
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+                webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+                lock (spotify_lock)
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+                }
+
+                string lastItemId = playlist.tracks.items.Last().track.Id;
+
+                Deletion deletion = new Deletion();
 
                 Track1 track = new Track1();
-                track.uri = "";
+                track.uri = $"spotify:track:{lastItemId}";
                 track.positions.Add(100);
 
-                root.tracks.Add(track);
+                deletion.tracks.Add(track);
 
-                string formData = JsonConvert.SerializeObject(root);
+                string formData = JsonConvert.SerializeObject(deletion);
 
                 string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}/tracks";
                 string response = webClient.UploadString(endpoint, formData);
