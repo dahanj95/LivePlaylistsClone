@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using DotNetEnv;
+using LivePlaylistsClone.DAL;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -17,14 +18,18 @@ namespace LivePlaylistsClone.Channels
         protected string ChannelName;
         protected string PlaylistId;
 
-        private readonly object auddio_lock = new object();
-        private readonly object spotify_lock = new object();
+        private readonly object auddio_lock = new();
+        private readonly object spotify_lock = new();
 
         private string auddio_token = ""; // https://dashboard.audd.io/
         private string spotify_token = ""; // https://developer.spotify.com/console/post-playlist-tracks/
 
+        private readonly PlaylistRepository _playlistRepository;
+
         public BaseChannel()
         {
+            _playlistRepository = new PlaylistRepository(ChannelName);
+
             // scheduled
             Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
 
@@ -32,6 +37,7 @@ namespace LivePlaylistsClone.Channels
             Schedule(ReadAuddioToken).ToRunNow();
             Schedule(ReadSpotifyToken).ToRunNow();
             Schedule(CreateWorkingFolder).ToRunNow();
+            Schedule(SavePlaylistToDatabaseStartup).ToRunNow();
         }
 
         public void Execute()
@@ -64,13 +70,14 @@ namespace LivePlaylistsClone.Channels
                 }
             }
 
-            var playlist = GetPlaylistItems();
-            if (playlist.tracks.items.Count == 100)
+            if (_playlistRepository.Count == 100)
             {
-                RemoveLastItemFromPlaylist(playlist);
+                Item item = _playlistRepository.Last;
+                RemoveTrackFromRemotePlaylistById(item.track.id);
+                _playlistRepository.RemoveTrackFromLocalPlaylist(item);
             }
             
-            AddSongToPlaylistByTrackId(track.Id);
+            AddSongToRemotePlaylistByTrackId(track.Id);
             SaveTrackToDatabase(track, ChannelName);
 
             string rootContent = root.result.ToString();
@@ -162,7 +169,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private void AddSongToPlaylistByTrackId(string trackId)
+        private void AddSongToRemotePlaylistByTrackId(string trackId)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -185,7 +192,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private Playlist GetPlaylistItems()
+        private string GetPlaylistAsJson()
         {
             using (WebClient webClient = new WebClient())
             {
@@ -200,11 +207,18 @@ namespace LivePlaylistsClone.Channels
                 string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}";
                 string response = webClient.DownloadString(endpoint);
 
-                return JsonConvert.DeserializeObject<Playlist>(response);
+                return response;
             }
         }
 
-        private void RemoveLastItemFromPlaylist(Playlist playlist)
+        private void SavePlaylistToDatabaseStartup()
+        {
+            string raw = GetPlaylistAsJson();
+            Playlist playlist = JsonConvert.DeserializeObject<Playlist>(raw);
+            _playlistRepository.SavePlaylistToDatabase(playlist);
+        }
+
+        private void RemoveTrackFromRemotePlaylistById(string id)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -216,12 +230,10 @@ namespace LivePlaylistsClone.Channels
                     webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
                 }
 
-                string lastItemId = playlist.tracks.items.Last().track.Id;
-
                 Deletion deletion = new Deletion();
 
                 Track1 track = new Track1();
-                track.uri = $"spotify:track:{lastItemId}";
+                track.uri = $"spotify:track:{id}";
                 track.positions.Add(100);
 
                 deletion.tracks.Add(track);

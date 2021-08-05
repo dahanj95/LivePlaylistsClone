@@ -13,7 +13,7 @@ namespace LivePlaylistsClone
             List<BaseChannel> channels = new List<BaseChannel>
             {
                 new GlglzChannel(),
-                new Kan88Channel()
+                //new Kan88Channel()
             };
 
             Env.Load();
