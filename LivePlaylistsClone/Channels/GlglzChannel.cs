@@ -27,10 +27,13 @@ namespace LivePlaylistsClone.Channels
 
                 await client.GoToTokenView();
                 await client.ShowPrivilegeDialog();
-                await client
+                await client.Sleep(2000);
                 await client.FillPrivilegeForm();
+                await client.Sleep(1000);
                 await client.AgreePolicy();
+                await client.Sleep(750);
                 await client.SubmitPrivilegeForm();
+                await client.Sleep(1000);
 
                 string oauth_token = await client.GetOAuthToken();
 
