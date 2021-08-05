@@ -37,11 +37,11 @@ namespace LivePlaylistsClone.Channels
         public void Execute()
         {
             SaveChunkToFile($".\\{ChannelName}\\sample.mp3");
-            var root = UploadChunkToAuddio($".\\{ChannelName}\\sample.mp3");
+            var auddioResult = UploadChunkToAuddio($".\\{ChannelName}\\sample.mp3");
 
-            if (root.result?.spotify == null)
+            if (auddioResult.result?.spotify == null)
             {
-                File.AppendAllText(".\\log.txt", root.result?.ToString());
+                File.AppendAllText(".\\log.txt", auddioResult.result?.ToString());
                 // if we got here, this means there wasn't a song playing
                 // reasons: traffic highlights, breaking news, or some talk show
                 // or
@@ -49,7 +49,7 @@ namespace LivePlaylistsClone.Channels
                 return;
             }
 
-            Track track = ExtractTrack(root.result);
+            Track track = ExtractTrack(auddioResult.result);
             Track dbTrack = ReadTrackFromDatabase(ChannelName);
 
             if (dbTrack != null)
@@ -64,18 +64,20 @@ namespace LivePlaylistsClone.Channels
                 }
             }
 
-            var remotePlaylist = GetRemotePlaylist();
+            var pt = GetPlaylistTotal();
 
-            if (remotePlaylist.tracks.items.Count == 100)
+            if (pt.tracks.total == 100)
             {
-                Track2 track2 = remotePlaylist.tracks.items.Last().track;
-                RemoveTrackFromRemotePlaylistById(track2.id);
+                var lastItem = GetPlaylistLastItem();
+                var lastTrack = lastItem.items[0].track;
+
+                RemoveTrackFromRemotePlaylistById(lastTrack.id);
             }
 
             AddSongToRemotePlaylistByTrackId(track.Id);
             SaveTrackToDatabase(track, ChannelName);
 
-            string rootContent = root.result.ToString();
+            string rootContent = auddioResult.result.ToString();
 
             Console.WriteLine(rootContent);
             File.WriteAllText($".\\{ChannelName}\\log.txt", rootContent);
@@ -137,7 +139,7 @@ namespace LivePlaylistsClone.Channels
         }
 
         // this method uploads the saved chunk to the api for recognition
-        private Root UploadChunkToAuddio(string fileName)
+        private AuddioResult UploadChunkToAuddio(string fileName)
         {
             NameValueCollection formData = new NameValueCollection();
 
@@ -149,7 +151,7 @@ namespace LivePlaylistsClone.Channels
             formData.Add("return", "spotify, apple_music");
 
             string jsonResult = ExecuteRequestSendFile("https://api.audd.io/recognize", formData, fileName);
-            return JsonConvert.DeserializeObject<Root>(jsonResult);
+            return JsonConvert.DeserializeObject<AuddioResult>(jsonResult);
         }
 
         private string ExecuteRequestSendFile(string url, NameValueCollection paramters, string filePath)
@@ -187,7 +189,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private Playlist GetRemotePlaylist()
+        private Playlist GetPlaylistLastItem()
         {
             using (WebClient webClient = new WebClient())
             {
@@ -199,10 +201,36 @@ namespace LivePlaylistsClone.Channels
                     webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
                 }
 
-                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}";
+                NameValueCollection values = new NameValueCollection();
+                values.Add("market", "ES");
+                values.Add("limit", "1");
+                values.Add("offset", "99");
+
+                webClient.QueryString = values;
+
+                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}/tracks";
                 string response = webClient.DownloadString(endpoint);
 
                 return JsonConvert.DeserializeObject<Playlist>(response);
+            }
+        }
+
+        private PlaylistTotal GetPlaylistTotal()
+        {
+            using (WebClient webClient = new WebClient())
+            {
+                webClient.Headers.Add(HttpRequestHeader.Accept, "application/json");
+                webClient.Headers.Add(HttpRequestHeader.ContentType, "application/json");
+
+                lock (spotify_lock)
+                {
+                    webClient.Headers.Add(HttpRequestHeader.Authorization, $" Bearer {spotify_token}");
+                }
+
+                string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}?fields=tracks(total)";
+                string response = webClient.DownloadString(endpoint);
+
+                return JsonConvert.DeserializeObject<PlaylistTotal>(response);
             }
         }
 
@@ -222,14 +250,14 @@ namespace LivePlaylistsClone.Channels
 
                 Track1 track = new Track1();
                 track.uri = $"spotify:track:{id}";
-                track.positions.Add(100);
+                track.positions.Add(99);
 
                 deletion.tracks.Add(track);
 
                 string formData = JsonConvert.SerializeObject(deletion);
 
                 string endpoint = $"https://api.spotify.com/v1/playlists/{PlaylistId}/tracks";
-                string response = webClient.UploadString(endpoint, formData);
+                string response = webClient.UploadString(endpoint, "DELETE", formData);
             }
         }
 
