@@ -71,7 +71,7 @@ namespace LivePlaylistsClone.Channels
                 var lastItem = GetPlaylistLastItem();
                 var lastTrack = lastItem.items[0].track;
 
-                DeleteTrackFromPlaylistById(lastTrack.id);
+                DeleteTrackFromPlaylistById(lastTrack.id, 99);
             }
 
             AddSongToRemotePlaylistByTrackId(track.Id);
@@ -234,7 +234,7 @@ namespace LivePlaylistsClone.Channels
             }
         }
 
-        private void DeleteTrackFromPlaylistById(string id)
+        private void DeleteTrackFromPlaylistById(string id, int offset)
         {
             using (WebClient webClient = new WebClient())
             {
@@ -250,7 +250,7 @@ namespace LivePlaylistsClone.Channels
 
                 Track1 track = new Track1();
                 track.uri = $"spotify:track:{id}";
-                track.positions.Add(99);
+                track.positions.Add(offset);
 
                 deletion.tracks.Add(track);
 
