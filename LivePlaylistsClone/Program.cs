@@ -1,8 +1,8 @@
-﻿using FluentScheduler;
+﻿using DotNetEnv;
+using FluentScheduler;
 using LivePlaylistsClone.Channels;
+using LivePlaylistsClone.Services;
 using System;
-using System.Collections.Generic;
-using DotNetEnv;
 
 namespace LivePlaylistsClone
 {
@@ -10,15 +10,13 @@ namespace LivePlaylistsClone
     {
         static void Main(string[] args)
         {
-            List<BaseChannel> channels = new List<BaseChannel>
-            {
-                new GlglzChannel(),
-                new Kan88Channel()
-            };
-
             Env.Load();
 
-            JobManager.Initialize(channels.ToArray());
+            JobManager.Initialize(
+                SpotifyOAuthService.Instance,
+                new GlglzChannel(),
+                new Kan88Channel()
+            );
 
             Console.ReadKey();
         }

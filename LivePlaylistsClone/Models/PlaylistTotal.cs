@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System;
-
-namespace LivePlaylistsClone.Models
+﻿namespace LivePlaylistsClone.Models
 {
     public class Tracks
     {

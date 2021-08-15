@@ -1,13 +1,13 @@
-﻿using FluentScheduler;
+﻿using DotNetEnv;
+using FluentScheduler;
 using LivePlaylistsClone.Models;
+using LivePlaylistsClone.Services;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Specialized;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using DotNetEnv;
 
 namespace LivePlaylistsClone.Channels
 {
@@ -32,16 +32,27 @@ namespace LivePlaylistsClone.Channels
             Schedule(ReadAuddioToken).ToRunNow();
             Schedule(ReadSpotifyToken).ToRunNow();
             Schedule(CreateWorkingFolder).ToRunNow();
+
+            // event handler to set new generated oauth token
+            SpotifyOAuthService.Instance.OAuthTokenGenerated += OnOAuthTokenGenerated;
+        }
+
+        private void OnOAuthTokenGenerated(object? sender, string e)
+        {
+            lock (spotify_lock)
+            {
+                spotify_token = e;
+            }
         }
 
         public void Execute()
         {
-            SaveChunkToFile($".\\{ChannelName}\\sample.mp3");
+            WriteChunkToFile($".\\{ChannelName}\\sample.mp3");
             var auddioResult = UploadChunkToAuddio($".\\{ChannelName}\\sample.mp3");
 
             if (auddioResult.result?.spotify == null)
             {
-                File.AppendAllText(".\\log.txt", auddioResult.result?.ToString());
+                File.AppendAllText(".\\log.txt", $"{auddioResult.result}\n");
                 // if we got here, this means there wasn't a song playing
                 // reasons: traffic highlights, breaking news, or some talk show
                 // or
@@ -83,14 +94,6 @@ namespace LivePlaylistsClone.Channels
             File.WriteAllText($".\\{ChannelName}\\log.txt", rootContent);
         }
 
-        protected void SetOAuthToken(string oauth_token)
-        {
-            lock (spotify_lock)
-            {
-                spotify_token = oauth_token;
-            }
-        }
-
         private void CreateWorkingFolder()
         {
             if (!Directory.Exists($".\\{ChannelName}\\"))
@@ -116,7 +119,7 @@ namespace LivePlaylistsClone.Channels
         }
 
         // This method saves a 128KB chunk of the steam to a local file
-        private void SaveChunkToFile(string fileName)
+        private void WriteChunkToFile(string fileName)
         {
             HttpWebRequest HttpRequest = (HttpWebRequest)WebRequest.Create(StreamUrl);
 
@@ -147,7 +150,7 @@ namespace LivePlaylistsClone.Channels
             {
                 formData.Add("api_token", auddio_token);
             }
-          
+
             formData.Add("return", "spotify, apple_music");
 
             string jsonResult = ExecuteRequestSendFile("https://api.audd.io/recognize", formData, fileName);

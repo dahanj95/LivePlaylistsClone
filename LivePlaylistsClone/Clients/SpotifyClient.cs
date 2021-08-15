@@ -1,8 +1,8 @@
-﻿using LivePlaylistsClone.Contracts;
+﻿using DotNetEnv;
+using LivePlaylistsClone.Contracts;
 using PuppeteerSharp;
 using System;
 using System.Threading.Tasks;
-using DotNetEnv;
 
 namespace LivePlaylistsClone.Clients
 {
