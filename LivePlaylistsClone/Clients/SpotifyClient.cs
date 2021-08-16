@@ -29,7 +29,7 @@ namespace LivePlaylistsClone.Clients
                 Headless = false,
                 DefaultViewport = new ViewPortOptions { DeviceScaleFactor = 1.0 },
                 Args = new[] { "--disable-blink-features=AutomationControlled" },
-                ExecutablePath = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+                ExecutablePath = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
             });
 
             _view = await _browser.NewPageAsync();
@@ -83,6 +83,12 @@ namespace LivePlaylistsClone.Clients
         {
             var btnAgree = await _view.XPathAsync("//div[@id='onetrust-close-btn-container']/button");
             await btnAgree[0].ClickAsync();
+        }
+
+        public async Task<bool> IsPolicyPresent()
+        {
+            var btnAgree = await _view.QuerySelectorAsync("#onetrust-close-btn-container");
+            return btnAgree != null;
         }
 
         public async Task SubmitPrivilegeForm()

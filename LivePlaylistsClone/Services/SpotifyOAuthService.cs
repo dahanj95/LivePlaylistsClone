@@ -28,7 +28,12 @@ namespace LivePlaylistsClone.Services
                 await client.Sleep(2000);
                 await client.FillPrivilegeForm();
                 await client.Sleep(1000);
-                await client.AgreePolicy();
+
+                bool policy = await client.IsPolicyPresent();
+
+                if (policy)
+                    await client.AgreePolicy();
+
                 await client.Sleep(750);
                 await client.SubmitPrivilegeForm();
                 await client.Sleep(1000);

@@ -8,6 +8,7 @@ namespace LivePlaylistsClone.Contracts
         Task ShowPrivilegeDialog();
         Task FillPrivilegeForm();
         Task AgreePolicy();
+        Task<bool> IsPolicyPresent();
         Task SubmitPrivilegeForm();
         Task<string> GetOAuthToken();
     }
