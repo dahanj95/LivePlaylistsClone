@@ -1,10 +1,11 @@
 ﻿using FluentScheduler;
 using LivePlaylistsClone.Clients;
 using System;
+using System.Threading.Tasks;
 
 namespace LivePlaylistsClone.Services
 {
-    public sealed class SpotifyOAuthService : Registry, IJob
+    public sealed class SpotifyOAuthService : Registry, IAsyncJob
     {
         public static SpotifyOAuthService Instance = new();
 
@@ -12,10 +13,15 @@ namespace LivePlaylistsClone.Services
 
         private SpotifyOAuthService()
         {
-            Schedule(Execute).ToRunEvery(55).Minutes();
+            Schedule(Execute).NonReentrant().ToRunEvery(55).Minutes();
         }
 
-        public async void Execute()
+        public void Execute()
+        {
+            ExecuteAsync().Wait();
+        }
+
+        public async Task ExecuteAsync()
         {
             using (SpotifyClient client = new SpotifyClient())
             {

@@ -26,7 +26,7 @@ namespace LivePlaylistsClone.Channels
         public BaseChannel()
         {
             // scheduled
-            Schedule(Execute).ToRunNow().AndEvery(30).Seconds();
+            Schedule(Execute).NonReentrant().ToRunNow().AndEvery(30).Seconds();
 
             // run once
             Schedule(ReadAuddioToken).ToRunNow();
